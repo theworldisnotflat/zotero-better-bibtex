@@ -27,26 +27,30 @@ const required = [
   <%_ } -%>
 ]
 
-module.exports = function(explanation) {
-  var type = this.referencetype.toLowerCase()
+module.exports = {
+  qualityReport(explanation) {
+    var type = this.referencetype.toLowerCase()
 
-  if (!allowed[type]) return
+    if (!allowed[type]) return
 
-  var unexpected = Object.keys(this.has).filter(field => !allowed[type].find(set => set.has(field)))
-  var report = unexpected.map(field => "Unexpected field '" + field + "'" + (explanation[field] ? (' (' + explanation[field] + ')'): ''))
+    var unexpected = Object.keys(this.has).filter(field => !allowed[type].find(set => set.has(field)))
+    var report = unexpected.map(field => "Unexpected field '" + field + "'" + (explanation[field] ? (' (' + explanation[field] + ')'): ''))
 
-  for (const test of required) {
-    if (test.types.has(type)) test.check(this, report)
-  }
-
-  <%_ for (const [, {test, fields, params}] of Object.entries(data)) { -%>
-    for (const field of <%- JSON.stringify(fields) -%>) {
-      if (this.has[field]) {
-        const warning = Zotero.BetterBibTeX.qrCheck(this.has[field].value, <%- JSON.stringify(test) -%><%- typeof params === 'undefined' ? '' : ', ' + JSON.stringify(params) -%>)
-        if (warning) report.push("'" + field + "': " + warning)
-      }
+    for (const test of required) {
+      if (test.types.has(type)) test.check(this, report)
     }
-  <%_ } -%>
 
-  return report
+    <%_ for (const [, {test, fields, params}] of Object.entries(data)) { -%>
+      for (const field of <%- JSON.stringify(fields) -%>) {
+        if (this.has[field]) {
+          const warning = Zotero.BetterBibTeX.qrCheck(this.has[field].value, <%- JSON.stringify(test) -%><%- typeof params === 'undefined' ? '' : ', ' + JSON.stringify(params) -%>)
+          if (warning) report.push("'" + field + "': " + warning)
+        }
+      }
+    <%_ } -%>
+
+    return report
+  },
+
+  allowed: allowed,
 }

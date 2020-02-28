@@ -5,6 +5,7 @@ export { Translator }
 
 import { Reference } from './bibtex/reference'
 import { Exporter } from './bibtex/exporter'
+const bcf = require('./bibtex/biblatex.qr.bcf')
 
 Reference.prototype.fieldEncoding = {
   url: 'url',
@@ -36,7 +37,7 @@ Reference.prototype.caseConversion = {
   eventtitle: true,
 }
 
-Reference.prototype.lint = require('./bibtex/biblatex.qr.bcf')
+Reference.prototype.lint = bcf.qualityReport
 
 type CreatorArray = any[] & { type?: string }
 
