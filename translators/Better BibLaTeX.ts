@@ -278,6 +278,17 @@ export function doExport() {
   Reference.installPostscript()
   Exporter.prepare_strings()
 
+  let allowed: Record<string, string[]> = null
+  if (Translator.preferences.testing) {
+    allowed = {}
+    for (const [referencetype, fieldsets] of Object.entries(bcf.allowed as Record<string, Set<string>[]>)) {
+      allowed[referencetype] = []
+      for (const fieldset of fieldsets) {
+        allowed[referencetype] = allowed[referencetype].concat(Array.from(fieldset))
+      }
+    }
+  }
+
   // Zotero.write(`\n% ${Translator.header.label}\n`)
   Zotero.write('\n')
 
@@ -407,6 +418,10 @@ export function doExport() {
               ref.add({ name: 'shortjournal', value: item.journalAbbreviation, bibtexStrings: true })
             }
           }
+          break
+
+        case 'website':
+          ref.add({ name: 'organization', value: item.publicationTitle, bibtexStrings: true })
           break
 
         default:
@@ -596,6 +611,13 @@ export function doExport() {
     }
 
     ref.complete()
+    if (allowed) {
+      const _allowed = allowed[ref.referencetype]
+      if (_allowed) {
+        const disallowed = Object.keys(ref.has).filter(field => !_allowed.includes(field))
+        if (disallowed.length) throw new Error(`${ref.referencetype} has unsupported fields ${disallowed.join(', ')}`)
+      }
+    }
   }
 
   Exporter.complete()

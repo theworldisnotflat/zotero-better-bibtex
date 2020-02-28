@@ -15,6 +15,11 @@ import * as itemCreators from '../../gen/item-creators.json'
 
 const ctx: DedicatedWorkerGlobalScope = self as any
 
+function JSON_replacer(key, value) {
+  if (typeof value === 'object' && value instanceof Set) return [...value]
+  return value
+}
+
 export const params: { client: string, version: string, platform: string, translator: string, output: string } = (ctx.location.search || '')
   .replace(/^\?/, '') // remove leading question mark if present
   .split('&') // split into k-v pairs
@@ -86,7 +91,7 @@ class WorkerZoteroBetterBibTeX {
         // message,fileName,lineNumber,column,stack,errorCode
         _msg += `<Error: ${m.message}#\n${m.stack}>`
       } else {
-        _msg += stringify(m)
+        _msg += stringify(m, JSON_replacer)
       }
 
       _msg += ' '
