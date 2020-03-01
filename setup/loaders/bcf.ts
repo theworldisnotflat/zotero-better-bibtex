@@ -6,7 +6,6 @@ import * as path from 'path'
 import { DOMParser } from 'xmldom'
 
 import jsesc = require('jsesc')
-import _ = require('lodash')
 
 // TODO: make sure to occasionally check https://sourceforge.net/projects/biblatex-biber/files/biblatex-biber/testfiles/ for updates.
 
@@ -19,11 +18,8 @@ export = source => {
   const doc = (new DOMParser).parseFromString(source)
 
   const BCF = {
-    // combinations fo allowed fields
-    fieldSet: '',
-
-    // per type, array of fieldset names that make up the allowed fields for this type
-    allowed: {},
+    // per type, array of allowed fields for this type
+    allowed: '',
 
     // combinations of required fields and the types they apply to
     required: {},
@@ -33,10 +29,11 @@ export = source => {
   }
 
   const fieldSet = {}
+  const allowed: Record<string, string[]> = {}
 
   // get all the possible entrytypes and apply the generic fields
   for (const type of select('//bcf:entrytypes/bcf:entrytype', doc)) {
-    BCF.allowed[type.textContent] = ['optional']
+    allowed[type.textContent] = ['optional']
   }
 
   // tslint:disable-next-line:prefer-template
@@ -73,17 +70,44 @@ export = source => {
         fieldSet[setname].push(field)
       }
     }
-    fieldSet[setname] = new Set(fieldSet[setname])
+    fieldSet[setname] = Array.from(new Set(fieldSet[setname]))
 
     // assign the fieldset to the types it applies to
     for (const type of types) {
-      if (!BCF.allowed[type]) {
+      if (!allowed[type]) {
         throw new Error(`Unknown reference type ${type}`)
       } else {
-        BCF.allowed[type] = _.uniq(BCF.allowed[type].concat(setname))
+        allowed[type] = Array.from(new Set(allowed[type].concat(setname)))
       }
     }
   }
+
+  // see biblatex manual 2.1.3... why is this not in the BCF?
+  const non_standard_types = [
+    'artwork',
+    'audio',
+    'commentary',
+    'image',
+    'jurisdiction',
+    'legislation',
+    'legal',
+    'letter',
+    'movie',
+    'music',
+    'performance',
+    'review',
+    'standard',
+    'video',
+  ]
+  for (const type of non_standard_types) {
+    if (!allowed[type].includes('optional_misc')) allowed[type].push('optional_misc')
+  }
+
+  // flatten into list
+  for (const [type, fields] of Object.entries(allowed)) {
+    allowed[type] = Array.from(new Set(fields.reduce((acc, setname) => acc.concat(fieldSet[setname]), []))).sort()
+  }
+  BCF.allowed = jsesc(allowed, { compact: false, indent: '  ' })
 
   for (const node of select('.//bcf:constraints', doc)) {
     const types = select('./bcf:entrytype', node).map(type => type.textContent).sort()
@@ -151,8 +175,6 @@ export = source => {
       BCF.data.push(test)
     }
   }
-
-  BCF.fieldSet = jsesc(fieldSet, { compact: false, indent: '  ' })
 
   return ejs.render(fs.readFileSync(path.join(__dirname, 'bcf.ejs'), 'utf8'), BCF)
 }

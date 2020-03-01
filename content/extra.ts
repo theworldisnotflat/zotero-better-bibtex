@@ -1,5 +1,5 @@
 // http://docs.citationstyles.org/en/stable/specification.html#appendix-iv-variables
-import * as cslVariables from './csl-vars.json'
+import * as cslVariableType from './csl-variable-type.json'
 import * as CSL from '../gen/citeproc'
 
 type TeXString = { value: string, raw?: boolean, type?: 'biblatex' | 'bibtex' }
@@ -93,7 +93,7 @@ export function get(extra: string, options?: GetOptions): { extra: string, extra
 
     if (options.csl && !tex) {
       let cslName = name.replace(/ +/g, '-')
-      const cslType = cslVariables[cslName] || cslVariables[cslName = cslName.toUpperCase()]
+      const cslType = cslVariableType[cslName] || cslVariableType[cslName = cslName.toUpperCase()]
       if (cslType) {
         if (cslType === 'creator') {
           extraFields.csl[cslName] = (extraFields.csl[cslName] as string[]) || [];

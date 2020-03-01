@@ -205,8 +205,6 @@ with open(os.path.join(root, 'gen', 'typings', 'serialized-item.d.ts'), 'w') as 
 
     relations: {{ 'dc:relation': string[] }}
     uri: string
-    referenceType: string
-    cslType: string
     cslVolumeTitle: string
     citekey: string
     collections: string[]

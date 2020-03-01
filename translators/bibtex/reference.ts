@@ -7,7 +7,7 @@ import { text2latex } from './unicode_translator'
 import { debug } from '../lib/debug'
 import { datefield } from './datefield'
 import * as Extra from '../../content/extra'
-import * as cslVariables from '../../content/csl-vars.json'
+import * as cslVariableType from '../../content/csl-variable-type.json'
 import * as CSL from '../../gen/citeproc'
 
 import { arXiv } from '../../content/arXiv'
@@ -368,27 +368,20 @@ export class Reference {
       this.english = ['american', 'british', 'canadian', 'english', 'australian', 'newzealand', 'usenglish', 'ukenglish', 'anglais'].includes(this.language.toLowerCase())
     }
 
-    if (this.item.extraFields.csl.type) {
-      this.item.cslType = (this.item.extraFields.csl.type as string).toLowerCase()
-      delete item.extraFields.csl.type
-    }
-
     if (this.item.extraFields.csl['volume-title']) { // should just have been mapped by Zotero
       this.item.cslVolumeTitle = (this.item.extraFields.csl['volume-title'] as string)
       delete this.item.extraFields.csl['volume-title']
     }
 
-    this.item.referenceType = this.item.extraFields.tex.referencetype?.value || this.item.cslType || this.item.itemType
     // should be const referencetype: string | { type: string, subtype?: string }
     // https://github.com/Microsoft/TypeScript/issues/10422
-    const referencetype: any = this.item.extraFields.tex.referencetype?.value || this.typeMap.csl[this.item.cslType] || this.typeMap.zotero[this.item.itemType] || 'misc'
+    const referencetype: any = this.item.extraFields.tex.referencetype?.value || this.typeMap.csl[(this.item.extraFields.csl.type as string)?.toLowerCase()] || this.typeMap.zotero[this.item.itemType] || 'misc'
     if (typeof referencetype === 'string') {
       this.referencetype = referencetype
     } else {
       this.add({ name: 'entrysubtype', value: referencetype.subtype })
       this.referencetype = referencetype.type
     }
-    delete this.item.extraFields.tex.referencetype
 
     if (Translator.preferences.jabrefFormat) {
       if (Translator.preferences.testing) {
@@ -597,15 +590,17 @@ export class Reference {
       this.add({ name: 'ids', value: this.item.extraFields.aliases.join(',') })
     }
 
-    for (let [cslName, value] of Object.entries(this.item.extraFields.csl)) {
+    for (let [cslVar, value] of Object.entries(this.item.extraFields.csl)) {
+      if (cslVar === 'type') continue
+
       // these are handled just like 'arxiv' and 'lccn', respectively
-      if (['PMID', 'PMCID'].includes(cslName) && typeof value === 'string') {
-        this.item.extraFields.tex[cslName.toLowerCase()] = { value }
-        delete this.item.extraFields.csl[cslName]
+      if (['PMID', 'PMCID'].includes(cslVar) && typeof value === 'string') {
+        this.item.extraFields.tex[cslVar.toLowerCase()] = { value }
+        delete this.item.extraFields.csl[cslVar]
         continue
       }
 
-      const type = cslVariables[cslName]
+      const type = cslVariableType[cslVar]
       let name = null
       let replace = false
       let enc
@@ -629,7 +624,7 @@ export class Reference {
 
       // CSL names are not in BibTeX format, so only add it if there's a mapping
       if (Translator.BetterBibLaTeX) {
-        switch (cslName) {
+        switch (cslVar) {
           case 'authority':
             name = 'institution'
             break
@@ -639,20 +634,17 @@ export class Reference {
             break
 
           case 'title':
-            name = this.referencetype === 'book' ? 'maintitle' : null
+            name = this.referencetype === 'book' ? 'maintitle' : 'title'
             break
 
           case 'container-title':
-            switch (this.item.referenceType) {
-              case 'film':
-              case 'tvBroadcast':
-              case 'videoRecording':
-              case 'motion_picture':
+            switch (this.referencetype) {
+              case 'movie':
+              case 'video':
                 name = 'booktitle'
                 break
 
-              case 'bookSection':
-              case 'chapter':
+              case 'insection':
                 name = 'maintitle'
                 break
 
@@ -714,20 +706,20 @@ export class Reference {
           case 'DOI':
           case 'ISBN':
           case 'ISSN':
-            name = cslName.toLowerCase()
+            name = cslVar.toLowerCase()
             break
         }
       }
 
       if (Translator.BetterBibTeX) {
-        switch (cslName) {
+        switch (cslVar) {
           case 'call-number':
             name = 'lccn'
             break
 
           case 'DOI':
           case 'ISSN':
-            name = cslName.toLowerCase()
+            name = cslVar.toLowerCase()
             break
         }
       }
@@ -735,7 +727,7 @@ export class Reference {
       if (name) {
         this.override({ name, verbatim: name, orig: { inherit: true }, value, enc, replace, fallback: !replace })
       } else {
-        debug('Unmapped CSL field', cslName, '=', value)
+        debug('Unmapped CSL field', cslVar, '=', value)
       }
     }
 
@@ -743,10 +735,7 @@ export class Reference {
     const bibtexStrings = Translator.preferences.exportBibTeXStrings === 'match'
     for (const [name, field] of Object.entries(this.item.extraFields.tex)) {
       // psuedo-var, sets the reference type
-      if (name === 'referencetype') {
-        this.referencetype = field.value
-        continue
-      }
+      if (name === 'referencetype')  continue
 
       if (field.type && field.type !== tex) continue
 

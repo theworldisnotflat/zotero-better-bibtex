@@ -1,13 +1,5 @@
-const fieldSet = <%- fieldSet %>
-const allowed = {
-<%_ for (const [type, sets] of Object.entries(allowed)) { -%>
-  <%= type -%>: [
-    <%_ for (const set of sets) { -%>
-      fieldSet.<%= set -%>,
-    <%_ } -%>
-  ],
-<%_ } -%>
-}
+const allowed = <%- allowed %>
+
 const required = [
   <%_ for (const [, {types, fields}] of Object.entries(required)) { -%>
     {
@@ -33,7 +25,7 @@ module.exports = {
 
     if (!allowed[type]) return
 
-    var unexpected = Object.keys(this.has).filter(field => !allowed[type].find(set => set.has(field)))
+    var unexpected = Object.keys(this.has).filter(field => !allowed[type].includes(field))
     var report = unexpected.map(field => "Unexpected field '" + field + "'" + (explanation[field] ? (' (' + explanation[field] + ')'): ''))
 
     for (const test of required) {

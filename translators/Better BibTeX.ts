@@ -203,7 +203,7 @@ export function doExport() {
     ref.add({ name: 'number', value: item.number || item.issue || item.seriesNumber })
     ref.add({ name: 'urldate', value: item.accessDate && item.accessDate.replace(/\s*T?\d+:\d+:\d+.*/, '') })
 
-    if (['bookSection', 'conferencePaper', 'chapter'].includes(item.referenceType)) {
+    if (['incollection', 'inproceedings'].includes(ref.referencetype)) {
       ref.add({ name: 'booktitle', value: item.publicationTitle || item.conferenceName, bibtexStrings: true })
 
     } else if (ref.isBibString(item.publicationTitle)) {
@@ -214,16 +214,16 @@ export function doExport() {
 
     }
 
-    switch (item.referenceType) {
-      case 'thesis':
+    switch (ref.referencetype) {
+      case 'phdthesis':
         ref.add({ name: 'school', value: item.publisher, bibtexStrings: true })
         break
 
-      case 'report':
+      case 'techreport':
         ref.add({ name: 'institution', value: item.publisher, bibtexStrings: true })
         break
 
-      case 'computerProgram':
+      case 'misc':
         ref.add({ name: 'howpublished', value: item.publisher, bibtexStrings: true })
         break
 
@@ -245,13 +245,13 @@ export function doExport() {
           break
 
         default:
-          if (['webpage', 'post', 'post-weblog'].includes(item.referenceType)) url = ref.add({ name: 'howpublished', value: item.extraFields.csl.URL || item.url })
+          if (ref.referencetype === 'misc') url = ref.add({ name: 'howpublished', value: item.extraFields.csl.URL || item.url })
           break
       }
     }
     if (Translator.preferences.DOIandURL === 'both' || !url) ref.add({ name: 'doi', value: doi })
 
-    if (item.referenceType === 'thesis' && ['mastersthesis', 'phdthesis'].includes(item.type)) {
+    if (ref.referencetype === 'phdthesis' && ['mastersthesis', 'phdthesis'].includes(item.type)) {
       ref.referencetype = item.type
       ref.remove('type')
     }

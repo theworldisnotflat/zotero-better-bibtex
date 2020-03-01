@@ -55,7 +55,7 @@
       "newTranslatorsAskRestart": true,
       "parseParticles": true,
       "platform": "mac",
-      "postscript": "",
+      "postscript": "reference.add({ name: 'journaltitle', value: 'journaltitle' })",
       "qualityReport": true,
       "quickCopyMode": "latex",
       "quickCopyPandocBrackets": false,

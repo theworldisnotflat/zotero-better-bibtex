@@ -5,7 +5,7 @@ import { Translator } from '../lib/translator'
 import { debug } from '../lib/debug'
 import * as itemfields from '../../gen/itemfields'
 import * as Extra from '../../content/extra'
-import * as cslVariables from '../../content/csl-vars.json'
+import * as cslVariableType from '../../content/csl-variable-type.json'
 
 const validCSLTypes = [
   'article',
@@ -123,7 +123,7 @@ export let CSLExporter = new class { // tslint:disable-line:variable-name
         } else if (name === 'type') {
           if (validCSLTypes.includes(value)) csl.type = value
 
-        } else if (cslVariables[name] === 'date') {
+        } else if (cslVariableType[name] === 'date') {
             csl[name] = this.date2CSL(Zotero.BetterBibTeX.parseDate(value))
 
         } else {
