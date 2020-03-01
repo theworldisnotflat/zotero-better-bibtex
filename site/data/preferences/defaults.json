@@ -52,6 +52,7 @@
   "ignorePostscriptErrors": true,
   "debugLogDir": "",
   "testing": false,
+  "legalCitations": "",
   "autoPin": false,
   "kuroshiro": false,
   "relativeFilePaths": false,

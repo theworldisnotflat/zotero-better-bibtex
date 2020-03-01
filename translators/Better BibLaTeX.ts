@@ -281,6 +281,63 @@ export function doExport() {
   // Zotero.write(`\n% ${Translator.header.label}\n`)
   Zotero.write('\n')
 
+  // if we're generating a quality report, don't limit the fields we'll output, it will show up in the report
+  // this does mean that for #1370, you will have to turn on the QR, or use `tex.publisher`
+  const fieldsAllowed = Translator.preferences.qualityReport ? null : bcf.allowed
+
+  // https://tex.stackexchange.com/questions/437824/what-is-best-practice-re-handling-legal-sources-with-biblatex-biber-for-discipl
+  // writes to bcf because it also needs to affect the QR!
+  // #1370 van also set legalCitations
+  // TODO: may have to change the typemap too
+  switch (Translator.preferences.legalCitations) {
+    case 'abnt':
+      bcf.allowed.jurisdiction = bcf.allowed.legislation = bcf.allowed.article
+      break
+
+    case 'bath':
+      bcf.allowed.jurisdiction = bcf.allowed.legislation = bcf.allowed['@optional'].concat('title year series chapter number address publisher entrysubtype pages'.split(' '))
+      break
+
+    case 'chicago':
+      // QR should test for 'pages xor issue'
+      bcf.allowed.jurisdiction = bcf.allowed['@optional'].concat('title shorttitle journaltitle shortjournal pages issue series volume number location entrysubtype origlocation origpublisher related'.split(' '))
+      bcf.allowed.legislation = bcf.allowed['@optional'].concat('author title titleaddon number note journaltitle shortjournal volume series issue pages part chapter date location usera addendum entrysubtype'.split(' '))
+      bcf.allowed.legal = bcf.allowed['@optional'].concat('title shorttitle titleaddon journaltitle shortjournal issue volume pages date'.split(' '))
+      break
+
+    case 'oscola':
+      bcf.allowed.jurisdiction = bcf.allowed['@optional'].concat([
+        'title',
+        'shorttitle',
+        'shorthand',
+        'date',
+        'origdate',
+        'number',
+        'keywords',
+        'court',
+        'reporter', 'series', 'volume', 'pages',
+        'pagination',
+        'options',
+        'note',
+        'location',
+        'parreporter', 'parseries', 'parvolume', 'parpages',
+        'additionalreports',
+      ])
+      bcf.allowed.legislation = bcf.allowed.legal = bcf.allowed['@optional'].concat('entrysubtype keywords title shorttitle shorthand pagination number note'.split(' '))
+      break
+
+    case 'oxref':
+    case 'philosophy':
+    default:
+      bcf.allowed.jurisdiction = bcf.allowed.legislation = bcf.allowed.legal = bcf.allowed['@optional'].concat(bcf.allowed['@optional_misc'])
+      break
+  }
+
+  Reference.prototype.mayAdd = function(ref, field) { // tslint:disable-line:only-arrow-functions
+    if (!bcf.allowed[ref.referencetype] || Translator.preferences.qualityReport) return true
+    return bcf.allowed[ref.referencetype].includes(field.name)
+  }
+
   let item: ISerializedItem
   while (item = Exporter.nextItem()) {
     const ref = new Reference(item)
@@ -288,6 +345,8 @@ export function doExport() {
     if (['insection', 'incollection'].includes(ref.referencetype) && ref.hasCreator('bookAuthor')) ref.referencetype = 'inbook'
     if (ref.referencetype === 'book' && !ref.hasCreator('author') && ref.hasCreator('editor')) ref.referencetype = 'collection'
     if (ref.referencetype === 'book' && item.numberOfVolumes) ref.referencetype = 'mvbook'
+
+    const allowed = fieldsAllowed?.[ref.referencetype]
 
     let m
     if (item.url && (m = item.url.match(/^http:\/\/www.jstor.org\/stable\/([\S]+)$/i))) {
@@ -362,9 +421,9 @@ export function doExport() {
     ref.add({ name: looks_like_number_field(item.issue) ? 'number' : 'issue', value: item.issue })
 
     switch (ref.referencetype) {
-      // case 'gazette': TODO: what is this?
       case 'jurisdiction':
-        ref.add({ name: 'journaltitle', value: item.reporter, bibtexStrings: true })
+        // TODO: may have to vary for legalCitations
+        ref.add({ name: 'reporter', value: item.reporter, bibtexStrings: true })
         break
 
       case 'legislation':
@@ -448,7 +507,8 @@ export function doExport() {
         break
 
       case 'jurisdiction':
-        ref.add({ name: 'institution', value: item.court, bibtexStrings: true })
+        const court = 'court' // TODO: vary by legalCitations
+        ref.add({ name: court, value: item.court, bibtexStrings: true })
         break
 
       case 'software':
@@ -507,7 +567,7 @@ export function doExport() {
       enc: 'date',
     })
 
-    ref.add({ name: 'pages', value: ref.normalizeDashes(item.pages)})
+    ref.add({ name: 'pages', value: ref.normalizeDashes(item.pages) })
 
     ref.add({ name: 'keywords', value: item.tags, enc: 'tags' })
 
@@ -586,12 +646,9 @@ export function doExport() {
       }
     }
 
-    if (Translator.preferences.testing) { // && !Translator.preferences.qualityReport) {
-      const allowed = bcf.allowed[ref.referencetype]
-      if (allowed) {
-        const disallowed = Object.keys(ref.has).filter(field => !allowed.includes(field))
-        if (disallowed.length) throw new Error(`${ref.referencetype} has unsupported fields ${JSON.stringify(disallowed.reduce((acc, field) => { acc[field] = ref.has[field].bibtex; return acc }, {}))}`)
-      }
+    if (Translator.preferences.testing && Array.isArray(allowed)) {
+      const disallowed = Object.keys(ref.has).filter(field => !allowed.includes(field))
+      if (disallowed.length) throw new Error(`${ref.referencetype} has unsupported fields ${JSON.stringify(disallowed.reduce((acc, field) => { acc[field] = ref.has[field].bibtex; return acc }, {}))}`)
     }
     ref.complete()
   }

@@ -28,7 +28,7 @@ export = source => {
     data: [],
   }
 
-  const fieldSet = {}
+  const fieldSet: Record<string, string[]> = {}
   const allowed: Record<string, string[]> = {}
 
   // get all the possible entrytypes and apply the generic fields
@@ -106,6 +106,11 @@ export = source => {
   // flatten into list
   for (const [type, fields] of Object.entries(allowed)) {
     allowed[type] = Array.from(new Set(fields.reduce((acc, setname) => acc.concat(fieldSet[setname]), []))).sort()
+  }
+
+  // make field sets available for legal stuff oh boy https://tex.stackexchange.com/questions/437824/what-is-best-practice-re-handling-legal-sources-with-biblatex-biber-for-discipl
+  for (const [type, fields] of Object.entries(fieldSet)) {
+    allowed[`@${type}`] = fields
   }
   BCF.allowed = jsesc(allowed, { compact: false, indent: '  ' })
 

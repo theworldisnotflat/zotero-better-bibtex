@@ -53,6 +53,8 @@ interface IField {
   html?: boolean
 
   bibtex?: string
+
+  if?: boolean
 }
 
 const Language = new class { // tslint:disable-line:variable-name
@@ -306,6 +308,7 @@ export class Reference {
   public caseConversion: { [key: string]: boolean }
   public typeMap: { csl: { [key: string]: string | { type: string, subtype?: string } }, zotero: { [key: string]: string | { type: string, subtype?: string } } }
   public lint: Function
+  public mayAdd: Function
   public addCreators: Function
 
   private cachable = true
@@ -316,7 +319,7 @@ export class Reference {
   private hasLowercaseWord = new Zotero.Utilities.XRegExp('\\s[\\p{Ll}]')
   private whitespace = new Zotero.Utilities.XRegExp('\\p{Zs}')
 
-  private inPostscript = false
+  public inPostscript = false
 
   public static installPostscript() {
     let postscript = Translator.preferences.postscript
@@ -440,6 +443,11 @@ export class Reference {
    */
   public add(field: IField) {
     if (Translator.skipField[field.name]) return null
+    if (typeof field.if === 'boolean') {
+      if (!field.if) return null
+    } else if (this.mayAdd && !this.mayAdd(this, field)) {
+      return null
+    }
 
     if (field.enc === 'date') {
       if (!field.value) return null
@@ -741,39 +749,39 @@ export class Reference {
 
       switch (name) {
         case 'mr':
-          this.override({ name: 'mrnumber', value: field.value, raw: field.raw })
+          this.override({ name: 'mrnumber', value: field.value, raw: field.raw, if: true })
           break
         case 'zbl':
-          this.override({ name: 'zmnumber', value: field.value, raw: field.raw })
+          this.override({ name: 'zmnumber', value: field.value, raw: field.raw, if: true })
           break
         case 'lccn': case 'pmcid':
-          this.override({ name, value: field.value, raw: field.raw })
+          this.override({ name, value: field.value, raw: field.raw, if: true })
           break
         case 'pmid':
         case 'arxiv':
         case 'jstor':
         case 'hdl':
           if (Translator.BetterBibLaTeX) {
-            this.override({ name: 'eprinttype', value: name })
-            this.override({ name: 'eprint', value: field.value, raw: field.raw })
+            this.override({ name: 'eprinttype', value: name, if: true })
+            this.override({ name: 'eprint', value: field.value, raw: field.raw, if: true })
           } else {
-            this.override({ name, value: field.value, raw: field.raw })
+            this.override({ name, value: field.value, raw: field.raw, if: true })
           }
           break
         case 'googlebooksid':
           if (Translator.BetterBibLaTeX) {
-            this.override({ name: 'eprinttype', value: 'googlebooks' })
-            this.override({ name: 'eprint', value: field.value, raw: field.raw })
+            this.override({ name: 'eprinttype', value: 'googlebooks', if: true })
+            this.override({ name: 'eprint', value: field.value, raw: field.raw, if: true })
           } else {
-            this.override({ name: 'googlebooks', value: field.value, raw: field.raw })
+            this.override({ name: 'googlebooks', value: field.value, raw: field.raw, if: true })
           }
           break
         case 'xref':
-          this.override({ name, value: field.value, raw: field.raw })
+          this.override({ name, value: field.value, raw: field.raw, if: true })
           break
 
         default:
-          this.override({ ...field, name, bibtexStrings })
+          this.override({ ...field, name, bibtexStrings, if: true })
           break
       }
     }
