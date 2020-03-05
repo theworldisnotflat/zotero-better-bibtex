@@ -97,6 +97,7 @@ export = source => {
     'performance',
     'review',
     'standard',
+    'software',
     'video',
   ]
   for (const type of non_standard_types) {

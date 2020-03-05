@@ -8,6 +8,7 @@
       "exportNotes": true
     },
     "preferences": {
+      "legalCitations": "oscola",
       "DOIandURL": "url",
       "autoAbbrevStyle": "http://www.zotero.org/styles/cell",
       "bibtexURL": "note",

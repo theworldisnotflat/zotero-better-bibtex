@@ -5,13 +5,20 @@ Feature: Export
 @127 @201 @219 @253 @268 @288 @294 @302 @308 @309 @310 @326 @327
 @351 @376 @389 @bblt-0 @bblt @485 @515 @573 @590 @747 @edtf @689
 @biblatex @644 @889 @482 @979 @746 @1148 @1139 @1162 @1207 @1331
-@245 @246 @1353 @1370 @1387 @1395 @1413 @1422 @1434 @1448
+@245 @246 @1353 @1370 @1387 @1395 @1413 @1422 @1434 @1448 @1060
+@284
 Scenario Outline: BibLaTeX Export
   When I import <references> references from "export/<file>.json"
   Then an export using "Better BibLaTeX" should match "export/*.biblatex"
 
   Examples:
      | file                                                                                           | references  |
+     | typo stature-statute (zotero item type) #284                                                   | 1           |
+     | Export mapping for reporter field #219                                                         | 1           |
+     | @legislation; map code,container-title to journaltitle #327                                    | 1           |
+     | @jurisdiction; map court,authority to institution #326                                         | 1           |
+     | Juris-M missing multi-lingual fields #482                                                      | 2           |
+     | BibLaTeX Patent author handling, type #1060                                                    | 2           |
      | Duplicate number field causes export error #1448                                               | 1           |
      | Be robust against misconfigured journal abbreviator #127                                       | 1           |
      | micro sign (unicode B5) export seems wrong and span in title #1434                             | 2           |
@@ -31,12 +38,10 @@ Scenario Outline: BibLaTeX Export
      | Do not use more than three initials in case of authshort key #1079                             | 1           |
      | ADS exports dates like 1993-00-00 #1066                                                        | 1           |
      | date ranges #747+#746                                                                          | 5           |
-     | BibLaTeX Patent author handling, type #1060                                                    | 2           |
      | BetterBibLaTeX; Software field company is mapped to publisher instead of organization #1054    | 1           |
      | Don't title-case sup-subscripts #1037                                                          | 8           |
      | Japanese rendered as Chinese in Citekey #979                                                   | 1           |
      | Dates incorrect when Zotero date field includes times #934                                     | 1           |
-     | Juris-M missing multi-lingual fields #482                                                      | 2           |
      | biblatex export of Presentation; Use type and venue fields #644                                | 2           |
      | Month showing up in year field on export #889                                                  | 1           |
      | urldate when only DOI is exported #869                                                         | 1           |
@@ -51,7 +56,6 @@ Scenario Outline: BibLaTeX Export
      | Extra semicolon in biblatexadata causes export failure #133                                    | 3           |
      | Spaces not stripped from citation keys #294                                                    | 1           |
      | Abbreviations in key generated for Conference Proceedings #548                                 | 1           |
-     | @jurisdiction; map court,authority to institution #326                                         | 1           |
      | Normalize date ranges in citekeys #356                                                         | 3           |
      | CSL status = biblatex pubstate #573                                                            | 1           |
      | Math parts in title #113                                                                       | 1           |
@@ -64,7 +68,6 @@ Scenario Outline: BibLaTeX Export
      | transliteration for citekey #580                                                               | 1           |
      | Title case of latex greek text on biblatex export #564                                         | 2           |
      | pre not working in Extra field #559                                                            | 1           |
-     | @legislation; map code,container-title to journaltitle #327                                    | 1           |
      | Better BibLaTeX.001                                                                            | 1           |
      | Better BibLaTeX.002                                                                            | 2           |
      | Better BibLaTeX.003                                                                            | 2           |
@@ -82,7 +85,6 @@ Scenario Outline: BibLaTeX Export
      | Date parses incorrectly with year 1000 when source Zotero field is in datetime format. #515    | 1           |
      | Dollar sign in title not properly escaped #485                                                 | 1           |
      | Export error for items without publicationTitle and Preserve BibTeX variables enabled #201     | 1           |
-     | Export mapping for reporter field #219                                                         | 1           |
      | Text that legally contains the text of HTML entities such as &nbsp; triggers an overzealous decoding second-guesser #253 | 1 |
      | auth leaves punctuation in citation key #310                                                   | 1           |
      | condense in cite key format not working #308                                                   | 1           |
@@ -97,7 +99,6 @@ Scenario Outline: BibLaTeX Export
      | biblatex; Language tag xx is exported, xx-XX is not #380                                       | 1           |
      | markup small-caps, superscript, italics #301                                                   | 2           |
      | don't escape entry key fields for #296                                                         | 1           |
-     | typo stature-statute (zotero item type) #284                                                   | 1           |
      | bookSection is always converted to @inbook, never @incollection #282                           | 1           |
      | referencetype= does not work #278                                                              | 1           |
      | References with multiple notes fail to export #174                                             | 1           |
