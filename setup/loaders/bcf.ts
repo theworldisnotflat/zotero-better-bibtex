@@ -14,6 +14,17 @@ function select(selector, node) {
   return _select(selector, node) as Element[]
 }
 
+const alias = {
+  location: 'address',
+  annotation: 'annote',
+  eprinttype: 'archiveprefix',
+  journaltitle: 'journal',
+  sortkey: 'key',
+  file: 'pdf',
+  eprintclass: 'primaryclass',
+  institution: 'school',
+}
+
 export = source => {
   const doc = (new DOMParser).parseFromString(source)
 
@@ -26,6 +37,8 @@ export = source => {
 
     // content checks
     data: [],
+
+    aliasfor: {},
   }
 
   const fieldSet: Record<string, string[]> = {}
@@ -68,6 +81,10 @@ export = source => {
         if (field === 'month' || field === 'year') fieldSet[setname].push(field)
       } else {
         fieldSet[setname].push(field)
+        if (alias[field]) {
+          fieldSet[setname].push(alias[field])
+          BCF.aliasfor[alias[field]] = field
+        }
       }
     }
     fieldSet[setname] = Array.from(new Set(fieldSet[setname]))
@@ -114,6 +131,7 @@ export = source => {
     allowed[`@${type}`] = fields
   }
   BCF.allowed = jsesc(allowed, { compact: false, indent: '  ' })
+  BCF.aliasfor = jsesc(BCF.aliasfor, { compact: false, indent: '  ' })
 
   for (const node of select('.//bcf:constraints', doc)) {
     const types = select('./bcf:entrytype', node).map(type => type.textContent).sort()

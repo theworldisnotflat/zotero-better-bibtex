@@ -6,13 +6,15 @@ Feature: Export
 @351 @376 @389 @bblt-0 @bblt @485 @515 @573 @590 @747 @edtf @689
 @biblatex @644 @889 @482 @979 @746 @1148 @1139 @1162 @1207 @1331
 @245 @246 @1353 @1370 @1387 @1395 @1413 @1422 @1434 @1448 @1060
-@284 @1449
+@284 @1449 @170
 Scenario Outline: BibLaTeX Export
   When I import <references> references from "export/<file>.json"
   Then an export using "Better BibLaTeX" should match "export/*.biblatex"
 
   Examples:
      | file                                                                                           | references  |
+     | Better BibLaTeX.020                                                                            | 1           |
+     | Better BibTeX does not use biblatex fields eprint and eprinttype #170                          | 1           |
      | typo stature-statute (zotero item type) #284                                                   | 1           |
      | Export mapping for reporter field #219                                                         | 1           |
      | @legislation; map code,container-title to journaltitle #327                                    | 1           |
@@ -103,7 +105,6 @@ Scenario Outline: BibLaTeX Export
      | bookSection is always converted to @inbook, never @incollection #282                           | 1           |
      | referencetype= does not work #278                                                              | 1           |
      | References with multiple notes fail to export #174                                             | 1           |
-     | Better BibTeX does not use biblatex fields eprint and eprinttype #170                          | 1           |
      | Capitalisation in techreport titles #160                                                       | 1           |
      | German Umlaut separated by brackets #146                                                       | 1           |
      | HTML Fragment separator escaped in url #140 #147                                               | 1           |
@@ -116,7 +117,6 @@ Scenario Outline: BibLaTeX Export
      | Better BibLaTeX.023                                                                            | 1           |
      | Better BibLaTeX.022                                                                            | 1           |
      | Better BibLaTeX.021                                                                            | 1           |
-     | Better BibLaTeX.020                                                                            | 1           |
      | Better BibLaTeX.017                                                                            | 1           |
      | Better BibLaTeX.016                                                                            | 1           |
      | Better BibLaTeX.015                                                                            | 1           |
