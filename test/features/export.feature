@@ -6,7 +6,7 @@ Feature: Export
 @351 @376 @389 @bblt-0 @bblt @485 @515 @573 @590 @747 @edtf @689
 @biblatex @644 @889 @482 @979 @746 @1148 @1139 @1162 @1207 @1331
 @245 @246 @1353 @1370 @1387 @1395 @1413 @1422 @1434 @1448 @1060
-@284
+@284 @1449
 Scenario Outline: BibLaTeX Export
   When I import <references> references from "export/<file>.json"
   Then an export using "Better BibLaTeX" should match "export/*.biblatex"
@@ -19,6 +19,7 @@ Scenario Outline: BibLaTeX Export
      | @jurisdiction; map court,authority to institution #326                                         | 1           |
      | Juris-M missing multi-lingual fields #482                                                      | 2           |
      | BibLaTeX Patent author handling, type #1060                                                    | 2           |
+     | tex.IDs= foo_bar are escaped despite the equals sign #1449                                     | 1           |
      | Duplicate number field causes export error #1448                                               | 1           |
      | Be robust against misconfigured journal abbreviator #127                                       | 1           |
      | micro sign (unicode B5) export seems wrong and span in title #1434                             | 2           |
