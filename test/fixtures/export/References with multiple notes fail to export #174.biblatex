@@ -3,10 +3,10 @@
   title = {{{XYZZY}}},
   author = {Torre, Joe and Verducci, Tom},
   date = {2008},
-  publisher = {{Doubleday}},
   annotation = {note 1
 \par
-note 2}
+note 2},
+  organization = {{Doubleday}}
 }
 
 

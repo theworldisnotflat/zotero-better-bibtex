@@ -2,12 +2,12 @@
 @jurisdiction{_dalain_2010,
   title = {Dalain},
   date = {2010-12-23},
-  journaltitle = {Rec.},
   volume = {I},
   pages = {649},
-  institution = {{CE, Ass.}},
+  court = {CE, Ass.},
   langid = {french},
-  number = {337033}
+  number = {337033},
+  reporter = {Rec.}
 }
 
 

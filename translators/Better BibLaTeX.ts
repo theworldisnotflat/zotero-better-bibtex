@@ -289,6 +289,7 @@ export function doExport() {
   // writes to bcf because it also needs to affect the QR!
   // #1370 van also set legalCitations
   // TODO: may have to change the typemap too
+  /*
   switch (Translator.preferences.legalCitations) {
     case 'abnt':
       bcf.allowed.jurisdiction = bcf.allowed.legislation = bcf.allowed.article
@@ -332,8 +333,10 @@ export function doExport() {
       bcf.allowed.jurisdiction = bcf.allowed.legislation = bcf.allowed.legal = bcf.allowed['@optional'].concat(bcf.allowed['@optional_misc'])
       break
   }
+  */
 
   Reference.prototype.mayAdd = function(ref, field) { // tslint:disable-line:only-arrow-functions
+    if (['jurisdiction', 'legislation', 'legal'].includes(ref.referencetype)) return true // TODO: remove once I figure out legalCitations
     if (!bcf.allowed[ref.referencetype] || Translator.preferences.qualityReport) return true
     return bcf.allowed[ref.referencetype].includes(field.name)
   }
@@ -512,6 +515,7 @@ export function doExport() {
         break
 
       case 'software':
+      case 'misc':
         ref.add({ name: 'organization', value: item.publisher, bibtexStrings: true })
         break
 
@@ -646,7 +650,7 @@ export function doExport() {
       }
     }
 
-    if (Translator.preferences.testing && Array.isArray(allowed)) {
+    if (Translator.preferences.testing && Array.isArray(allowed) && !['jurisdiction', 'legislation', 'legal'].includes(ref.referencetype)) {
       const disallowed = Object.keys(ref.has).filter(field => !allowed.includes(field))
       if (disallowed.length) throw new Error(`${ref.referencetype} has unsupported fields ${JSON.stringify(disallowed.reduce((acc, field) => { acc[field] = ref.has[field].bibtex; return acc }, {}))}`)
     }
