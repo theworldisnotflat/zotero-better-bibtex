@@ -337,6 +337,7 @@ export function doExport() {
 
   Reference.prototype.mayAdd = function(ref, field) { // tslint:disable-line:only-arrow-functions
     if (['jurisdiction', 'legislation', 'legal'].includes(ref.referencetype)) return true // TODO: remove once I figure out legalCitations
+    if (Translator.preferences.jabrefFormat && ['timestamp', 'groups'].includes(field.name)) return true
     if (!bcf.allowed[ref.referencetype] || Translator.preferences.qualityReport) return true
     return bcf.allowed[ref.referencetype].includes(field.name)
   }
@@ -355,8 +356,8 @@ export function doExport() {
     if (item.url && (m = item.url.match(/^http:\/\/www.jstor.org\/stable\/([\S]+)$/i))) {
       ref.override({ name: 'eprinttype', value: 'jstor'})
       ref.override({ name: 'eprint', value: m[1] })
-      ref.remove('archivePrefix')
-      ref.remove('primaryClass')
+      ref.remove('archiveprefix')
+      ref.remove('primaryclass')
       delete item.url
       ref.remove('url')
     }
@@ -364,8 +365,8 @@ export function doExport() {
     if (item.url && (m = item.url.match(/^http:\/\/books.google.com\/books?id=([\S]+)$/i))) {
       ref.override({ name: 'eprinttype', value: 'googlebooks'})
       ref.override({ name: 'eprint', value: m[1] })
-      ref.remove('archivePrefix')
-      ref.remove('primaryClass')
+      ref.remove('archiveprefix')
+      ref.remove('primaryclass')
       delete item.url
       ref.remove('url')
     }
@@ -373,8 +374,8 @@ export function doExport() {
     if (item.url && (m = item.url.match(/^http:\/\/www.ncbi.nlm.nih.gov\/pubmed\/([\S]+)$/i))) {
       ref.override({ name: 'eprinttype', value: 'pubmed'})
       ref.override({ name: 'eprint', value: m[1] })
-      ref.remove('archivePrefix')
-      ref.remove('primaryClass')
+      ref.remove('archiveprefix')
+      ref.remove('primaryclass')
       delete item.url
       ref.remove('url')
     }
@@ -439,6 +440,9 @@ export function doExport() {
         case 'incollection':
         case 'inproceedings':
         case 'inreference':
+        case 'inbook':
+        case 'movie':
+        case 'video':
           ref.add({ name: 'booktitle', value: item.publicationTitle, bibtexStrings: true })
           break
 
@@ -470,16 +474,6 @@ export function doExport() {
         default:
           if (!ref.has.journaltitle && (item.publicationTitle !== item.title)) ref.add({ name: 'journaltitle', value: item.publicationTitle })
       }
-    }
-
-    switch (ref.referencetype) {
-      case 'incollection':
-      case 'inreference':
-      case 'inproceedings':
-      case 'movie':
-      case 'video':
-        if (!ref.has.booktitle) ref.add({ name: 'booktitle', value: item.publicationTitle })
-        break
     }
 
     let main
@@ -651,7 +645,7 @@ export function doExport() {
     }
 
     if (Translator.preferences.testing && Array.isArray(allowed) && !['jurisdiction', 'legislation', 'legal'].includes(ref.referencetype)) {
-      const disallowed = Object.keys(ref.has).filter(field => !allowed.includes(field))
+      const disallowed = Object.keys(ref.has).filter(field => !((Translator.preferences.jabrefFormat && ['timestamp', 'groups'].includes(field)) || allowed.includes(field)))
       if (disallowed.length) throw new Error(`${ref.referencetype} has unsupported fields ${JSON.stringify(disallowed.reduce((acc, field) => { acc[field] = ref.has[field].bibtex; return acc }, {}))}`)
     }
     ref.complete()

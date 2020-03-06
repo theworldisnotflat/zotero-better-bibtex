@@ -408,10 +408,10 @@ export class Reference {
 
     if (this.item.arXiv) {
       delete this.item.extraFields.tex.arxiv
-      this.add({ name: 'archivePrefix', value: 'arXiv'} )
+      this.add({ name: 'archiveprefix', value: 'arXiv'} )
       this.add({ name: 'eprinttype', value: 'arxiv'})
       this.add({ name: 'eprint', value: this.item.arXiv.id })
-      this.add({ name: 'primaryClass', value: this.item.arXiv.category })
+      this.add({ name: 'primaryclass', value: this.item.arXiv.category })
     }
   }
 
